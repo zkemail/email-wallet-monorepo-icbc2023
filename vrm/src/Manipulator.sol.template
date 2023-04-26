@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+
+import "./VerifierWrapper.sol";
+import "../interfaces/IManipulator.sol";
+import "../interfaces/IERC20.sol";
+import "forge-std/console.sol";
+import "../EmailWallet.sol";
+
+contract <%RULE_INDEX%>Manipulator is IManipulator, <%RULE_INDEX%>VerifierWrapper {
+    EmailWallet wallet;
+    constructor(
+        address _verifier,
+        address payable _wallet
+    ) <%RULE_INDEX%>VerifierWrapper(_verifier) {
+        wallet = EmailWallet(_wallet);
+    }
+
+    function verifyWrap(
+        bytes calldata param,
+        bytes calldata acc,
+        bytes calldata proof
+    ) external view returns (bool) {
+        Param memory param = abi.decode(param, (Param));
+        return _verifyWrap(param, acc, proof);
+    }
+
+    function process(bytes calldata param) external {
+        /* IMPLEMENT HERE! */
+    }
+
+    function retrieveData(
+        bytes calldata param
+    ) external view returns (RetrievedData memory) {
+        Param memory param = abi.decode(param, (Param));
+        RetrievedData memory data;
+        data.headerHash = param.headerHash;
+        data.publicKey = param.publicKey;
+        data.fromAddress = param.fromAddressString;
+        data.toAddress = param.toAddressString;
+        data.manipulationId = param.manipulationIdUint;
+        return data;
+    }
+}

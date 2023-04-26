@@ -21,7 +21,7 @@ contract <%RULE_INDEX%>VerifierWrapper {
         string toAddressString;
         uint subjectStart;
         uint manipulationIdUint;
-        <%BODY_PARAM_DEFS%>
+<%BODY_PARAM_DEFS%>
     }
 
     constructor(address _verifier) {
@@ -90,7 +90,7 @@ contract <%RULE_INDEX%>VerifierWrapper {
             substrIdsPart[param.subjectStart + i] = bytes1(uint8(4));
         }
 
-        <%BODY_SUBSTR_PARTS%>
+        <%BODY_ENCODE_PART%>
         return abi.encodePacked(metaBytes, maskedStrPart, substrIdsPart);
     }
 
