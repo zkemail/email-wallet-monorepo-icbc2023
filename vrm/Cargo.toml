@@ -1,0 +1,30 @@
+[package]
+name = "vrm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.68"
+tokio = { version = "1.0", features = ["full"] }
+dotenv = "0.15.0"
+base64 = "0.21.0"
+hyper = "0.14.25"
+duct = "0.13.6"
+futures = "0.3.28"
+sha2 = "0.10.6"
+tower = "0.4.13"
+tower-http = "0.4.0"
+async-trait = "0.1.68"
+# multipart = "0.18.0"
+bytes = "1.4.0"
+futures-util = "0.3.28"
+anyhow = "1.0.70"
+fancy-regex = "0.11.0"
+halo2-zk-email = { version = "0.1.0", git = "https://github.com/zkemail/halo2-zk-email.git", branch = "feat/reuse_axiom" }
+rand = "0.8.5"
+hex = "0.4.3"
+hex-literal = "0.4.1"
+itertools = "0.10.3"
