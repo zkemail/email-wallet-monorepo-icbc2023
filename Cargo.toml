@@ -10,3 +10,6 @@ halo2-ecc = { version = "0.2.2", git = "https://github.com/SoraSuegami/halo2-lib
 
 [patch."https://github.com/privacy-scaling-explorations/halo2.git"]
 halo2_proofs = { git = "https://github.com/privacy-scaling-explorations//halo2.git", tag = "v2023_02_02" }
+
+[patch."https://github.com/zkemail/halo2-dynamic-sha256.git"]
+halo2-dynamic-sha256 = { git = "https://github.com/zkemail//halo2-dynamic-sha256.git", version = "0.1.0", branch = "feat/main_gate_base" }

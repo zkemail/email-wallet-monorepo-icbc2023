@@ -5,68 +5,39 @@
         "1": [
             {
                 "is_public": false,
-                "regex_def": "Transfer "
+                "regex_def": "Transfer ",
+                "max_size": 9
             },
             {
                 "is_public": true,
                 "regex_def": "(0|1|2|3|4|5|6|7|8|9|\\.)+",
+                "max_size": 20,
                 "solidity": {
                     "type": "Decimal"
                 }
             },
             {
                 "is_public": false,
-                "regex_def": " "
+                "regex_def": " ",
+                "max_size": 1
             },
             {
                 "is_public": true,
                 "regex_def": "(ETH|DAI)",
+                "max_size": 20,
                 "solidity": {
                     "type": "String"
                 }
             },
             {
                 "is_public": false,
-                "regex_def": " to "
+                "regex_def": " to ",
+                "max_size": 4
             },
             {
                 "is_public": true,
                 "regex_def": "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|0|1|2|3|4|5|6|7|8|9|_|\\.|-)+@(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|0|1|2|3|4|5|6|7|8|9|_|\\.|-)+",
-                "solidity": {
-                    "type": "String"
-                }
-            }
-        ],
-        "2": [
-            {
-                "is_public": false,
-                "regex_def": "Swap "
-            },
-            {
-                "is_public": true,
-                "regex_def": "(0|1|2|3|4|5|6|7|8|9|\\.)+",
-                "solidity": {
-                    "type": "Decimal"
-                }
-            },
-            {
-                "is_public": false,
-                "regex_def": " "
-            },
-            {
-                "is_public": true,
-                "regex_def": "(ETH|DAI)",
-                "solidity": {
-                    "type": "String"
-                }
-            },
-            {
-                "is_public": false,
-                "regex_def": " to "
-            },
-            {
-                "is_public": true,
-                "regex_def": "(ETH|DAI)",
+                "max_size": 20,
                 "solidity": {
                     "type": "String"
                 }
