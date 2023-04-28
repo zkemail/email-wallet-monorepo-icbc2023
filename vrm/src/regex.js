@@ -3,6 +3,10 @@ function catchAllRegexStr() {
     return "(0|1|2|3|4|5|6|7|8|9|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|!|\"|#|$|%|&|'|\\(|\\)|\\*|\\+|,|-|.|/|:|;|<|=|>|\\?|@|[|\\\\|]|^|_|`|{|\\||}|~| |\t|\n|\r|\x0b|\x0c)";
 }
 
+function catchAllWithoutRNRegexStr() {
+    return "(0|1|2|3|4|5|6|7|8|9|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|!|\"|#|$|%|&|'|\\(|\\)|\\*|\\+|,|-|.|/|:|;|<|=|>|\\?|@|[|\\\\|]|^|_|`|{|\\||}|~| |\t|\x0b|\x0c)";
+}
+
 function textContextPrefix() {
     return `Content-Type: text/plain; charset="UTF-8"\r\n\r\n`;
 }
@@ -334,7 +338,7 @@ function nfaToDfa(nfa) {
             top = stack.pop();
             // If top is of type string and starts with "Error" then return error
             if (typeof top === "string" && top[0] === "E") {
-                console.log(top);
+                // console.log(top);
                 continue;
             }
             for (i = 0; i < top.edges.length; i += 1) {

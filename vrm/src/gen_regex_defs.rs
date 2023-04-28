@@ -183,7 +183,7 @@ impl EntryConfig {
         }
         let num_public_parts = public_config_indexes.len();
         let mut substr_defs_array = (0..num_public_parts)
-            .map(|_| HashSet::<(usize, usize)>::new())
+            .map(|_| HashSet::<(usize, usize, bool)>::new())
             .collect_vec();
         for path in pathes.iter_mut() {
             let n = path.len();
@@ -208,15 +208,17 @@ impl EntryConfig {
                 .rev()
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>();
-            for (idx, (state, str)) in path_states[1..].iter().zip(path_strs.iter()).enumerate() {
-                println!(
-                    "idx {} state {} byte {} str {}",
-                    idx,
-                    state,
-                    str.as_bytes()[0],
-                    (str.as_bytes()[0] as char)
-                );
-            }
+            // for (idx, state) in path_states.iter().enumerate() {
+            //     println!("idx {} state {}", idx, state,);
+            // }
+            // for (idx, str) in path_strs.iter().enumerate() {
+            //     println!(
+            //         "idx {} byte {} str {}",
+            //         idx,
+            //         str.as_bytes()[0],
+            //         (str.as_bytes()[0] as char)
+            //     );
+            // }
 
             self.add_substr_defs_from_path(
                 &mut substr_defs_array,
@@ -237,20 +239,20 @@ impl EntryConfig {
             for defs in substr_defs_array.iter_mut() {
                 if defs
                     .iter()
-                    .find(|def| def.0 == *index || def.1 == *index)
+                    .find(|def| (def.0 == *index || def.1 == *index) && !def.2)
                     .is_some()
                 {
-                    defs.insert((*index, *index));
+                    defs.insert((*index, *index, false));
                 }
             }
         }
-        println!("{:?}", substr_defs_array);
+        // println!("{:?}", substr_defs_array);
         for (idx, defs) in substr_defs_array.into_iter().enumerate() {
             let mut writer = BufWriter::new(File::create(id_to_substr_path(idx))?);
             let max_size = &part_configs[public_config_indexes[idx]].max_size;
             writer.write_fmt(format_args!("{}\n", &max_size))?;
             writer.write_fmt(format_args!("0\n{}\n", self.max_body_size - 1))?;
-            for (cur, next) in defs.iter() {
+            for (cur, next, _) in defs.iter() {
                 writer.write_fmt(format_args!("{} {}\n", cur, next))?;
             }
         }
@@ -498,7 +500,7 @@ impl EntryConfig {
 
     fn add_substr_defs_from_path(
         &self,
-        substr_defs_array: &mut [HashSet<(usize, usize)>],
+        substr_defs_array: &mut [HashSet<(usize, usize, bool)>],
         path_states: &[usize],
         path_strs: &[String],
         part_regexes: &[Regex],
@@ -513,13 +515,24 @@ impl EntryConfig {
         let mut index_ends = part_regexes
             .iter()
             .map(|regex| {
-                println!(
-                    "regex {}, found {:?}",
-                    regex,
-                    regex.find(&concat_str).unwrap().unwrap()
-                );
+                // println!(
+                //     "regex {}, found {:?} end {}",
+                //     regex,
+                //     regex
+                //         .find(&concat_str)
+                //         .unwrap()
+                //         .unwrap()
+                //         .as_str()
+                //         .as_bytes(),
+                //     regex.find(&concat_str).unwrap().unwrap().end()
+                // );
                 // println!("regex {}", regex);
-                regex.find(&concat_str).unwrap().unwrap().end()
+                let found = regex.find(&concat_str).unwrap().unwrap();
+                if found.start() == found.end() {
+                    found.end() + 1
+                } else {
+                    found.end()
+                }
             })
             .collect_vec();
 
@@ -528,23 +541,20 @@ impl EntryConfig {
             .zip(substr_defs_array.iter_mut())
             .enumerate()
         {
-            println!("index {}", index);
+            // println!("index {}", index);
             let start = if *index == 0 {
                 0
             } else {
                 index_ends[index - 1]
             };
-            let end = if *index == part_regexes.len() - 1 {
-                concat_str.len() - 1
-            } else {
-                index_ends[*index]
-            };
-            println!("start {} end {}", start, end);
-            let substr_def_array: &[usize] = &path_states[(start)..(end + 1)];
-            println!("substr_def_array {:?}", substr_def_array);
+            let end = index_ends[*index];
+            // println!("start {} end {}", start, end);
+            let substr_def_array: &[usize] = &path_states[(start)..=end];
+            // println!("substr_def_array {:?}", substr_def_array);
             for idx in 0..(substr_def_array.len() - 1) {
-                println!("{} {}", substr_def_array[idx], substr_def_array[idx + 1],);
-                defs.insert((substr_def_array[idx], substr_def_array[idx + 1]));
+                // println!("{} {}", substr_def_array[idx], substr_def_array[idx + 1],);
+                let is_last = (idx == substr_def_array.len() - 2) && idx > 0;
+                defs.insert((substr_def_array[idx], substr_def_array[idx + 1], is_last));
             }
         }
 
