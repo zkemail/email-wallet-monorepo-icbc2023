@@ -5,10 +5,17 @@ use js_sandbox::{AnyError, Script};
 use petgraph::prelude::*;
 use serde_json::Value;
 
-pub fn cacth_all_regex_str() -> Result<String> {
+pub fn catch_all_regex_str() -> Result<String> {
     let code: &'static str = include_str!("regex.js");
     let mut script = Script::from_string(code)?;
     let result: String = script.call("catchAllRegexStr", ())?;
+    Ok(result)
+}
+
+pub fn catch_all_without_rn_regex_str() -> Result<String> {
+    let code: &'static str = include_str!("regex.js");
+    let mut script = Script::from_string(code)?;
+    let result: String = script.call("catchAllWithoutRNRegexStr", ())?;
     Ok(result)
 }
 
@@ -63,7 +70,7 @@ pub fn get_max_state(dfa_val: &[Value]) -> Result<usize> {
 
 pub fn add_graph_nodes(
     dfa_val: &[Value],
-    graph: &mut Graph<bool, char, Directed, usize>,
+    graph: &mut Graph<bool, String, Directed, usize>,
     last_max_state: Option<usize>,
     next_max_state: usize,
 ) -> Result<()> {
@@ -91,12 +98,12 @@ pub fn add_graph_nodes(
             }
             let key_list: Vec<String> = serde_json::from_str(&key)
                 .map_err(|e| anyhow!("serde_json from_str error {}", e))?;
+            let mut key_str = String::new();
             for key_char in key_list.iter() {
                 assert!(key_char.len() == 1);
-                let key_char: char = key_char.chars().collect::<Vec<char>>()[0];
-                // println!("i {}, next {} key {}", i, next_node, key_char);
-                graph.add_edge(NodeIndex::from(next_node), NodeIndex::from(i), key_char);
+                key_str += key_char;
             }
+            graph.add_edge(NodeIndex::from(next_node), NodeIndex::from(i), key_str);
             // println!("key {}, val {}", k, next_node_val);
             // let k_list: Vec<String> =
             //     serde_json::from_str(&k).map_err(|e| anyhow!("serde_json from_str error {}", e))?;
