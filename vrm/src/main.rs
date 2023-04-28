@@ -1,5 +1,6 @@
 mod entry_config;
 mod gen_regex_defs;
+mod gen_relayer_configs;
 mod gen_verifier_wrapper;
 mod js_caller;
 
@@ -62,6 +63,7 @@ fn setup1(
         serde_json::from_reader::<File, EntryConfig>(File::open(entry_config_path)?)?;
     entry_config.output_solidity_codes(solidity_project_path)?;
     entry_config.gen_regex_files(relayer_project_path)?;
+    entry_config.gen_config_files(relayer_project_path)?;
     // let dfa_val = get_dfa_json_value(&format!(r"{}", entry_config.rules[&1][0].regex_def))?;
     // let accepted_nodes = get_accepted_state(&dfa_val).unwrap();
     // println!("accepted {}", accepted_nodes);
