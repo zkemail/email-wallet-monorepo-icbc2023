@@ -4,6 +4,7 @@ use fancy_regex::Regex;
 use itertools::Itertools;
 use relayer::RegexType as SoldityType;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -162,6 +163,26 @@ impl EntryConfig {
             let mut verifier_file = File::create(&verifier_path)?;
             write!(verifier_file, "{}", verifier_code)?;
             verifier_file.flush()?;
+        }
+        Ok(())
+    }
+
+    pub fn copy_abi_files(
+        &self,
+        solidity_project_path: &PathBuf,
+        relayer_project_path: &PathBuf,
+    ) -> Result<()> {
+        let out_path = solidity_project_path.join("out");
+        let config_path = relayer_project_path.join("configs");
+        for name in ["EmailWallet", "IERC20", "IManipulator"] {
+            let json_path = out_path.join(&format!("{}.sol/{}.json", name, name));
+            let json_value: Value = serde_json::from_reader(File::open(&json_path)?)?;
+            let abi_value = json_value.get("abi").unwrap();
+            let abi_str = serde_json::to_string(&abi_value)?;
+            let abi_json_path = config_path.join(&format!("{}.json", name));
+            let mut file = File::create(&abi_json_path)?;
+            write!(file, "{}", abi_str)?;
+            file.flush()?;
         }
         Ok(())
     }

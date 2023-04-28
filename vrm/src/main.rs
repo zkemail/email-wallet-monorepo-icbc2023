@@ -172,6 +172,6 @@ async fn setup1(
         .arg("build")
         .current_dir("email-wallet-contracts")
         .output()?;
-
+    entry_config.copy_abi_files(&solidity_project_path, &relayer_project_path)?;
     Ok(())
 }
