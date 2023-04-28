@@ -20,9 +20,8 @@ use std::path::Path;
 use std::path::PathBuf;
 
 impl EntryConfig {
-    // pub const CACTH_ALL_REGEX:&'static str = "(0|1|2|3|4|5|6|7|8|9|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|!|\"|#|\\$|%|&|'|\\(|\\)|\\*|\\+|,|-|\\.|\\/|:|;|<|=|>|\\?|@|\\[|\\\\|\\]|\\^|_|`|{|\\||}|~| |\t|\n|\r|\x0b|\x0c)";
-    pub fn gen_regex_files(&self, relayer_project_path: &str) -> Result<()> {
-        let config_path = Path::new(relayer_project_path).join("configs");
+    pub fn gen_regex_files(&self, relayer_project_path: &PathBuf) -> Result<()> {
+        let config_path = relayer_project_path.join("configs");
         for id in self.rules.keys() {
             let regex_file_path = config_path.join(format!("regex_body_id{}.txt", id.to_string()));
             let id_to_substr_path = |substr_id: usize| {
@@ -101,9 +100,6 @@ impl EntryConfig {
             let mut parents = graph.neighbors(node).detach();
             // let mut parents_set = HashSet::new();
             while let Some((edge, parent)) = parents.next(&graph) {
-                if parent.index() == 54 || parent.index() == 55 {
-                    // println!("parent  {:?} child {:?}", parent, node);
-                }
                 if parent.index() == node.index() {
                     self_nodes.insert(node.index());
                     graph.remove_edge(edge).unwrap();
@@ -228,7 +224,7 @@ impl EntryConfig {
             let first_chars = str.as_bytes();
             concat_str += &(first_chars[0] as char).to_string();
         }
-        let mut index_ends = part_regexes
+        let index_ends = part_regexes
             .iter()
             .map(|regex| {
                 // println!(
@@ -257,7 +253,6 @@ impl EntryConfig {
             .zip(substr_defs_array.iter_mut())
             .enumerate()
         {
-            // println!("index {}", index);
             let start = if *index == 0 {
                 0
             } else {

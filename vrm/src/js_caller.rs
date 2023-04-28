@@ -12,12 +12,12 @@ pub fn catch_all_regex_str() -> Result<String> {
     Ok(result)
 }
 
-pub fn catch_all_without_rn_regex_str() -> Result<String> {
-    let code: &'static str = include_str!("regex.js");
-    let mut script = Script::from_string(code)?;
-    let result: String = script.call("catchAllWithoutRNRegexStr", ())?;
-    Ok(result)
-}
+// pub fn catch_all_without_rn_regex_str() -> Result<String> {
+//     let code: &'static str = include_str!("regex.js");
+//     let mut script = Script::from_string(code)?;
+//     let result: String = script.call("catchAllWithoutRNRegexStr", ())?;
+//     Ok(result)
+// }
 
 pub fn text_context_prefix_regex_str() -> Result<String> {
     let code: &'static str = include_str!("regex.js");
@@ -104,20 +104,6 @@ pub fn add_graph_nodes(
                 key_str += key_char;
             }
             graph.add_edge(NodeIndex::from(next_node), NodeIndex::from(i), key_str);
-            // println!("key {}, val {}", k, next_node_val);
-            // let k_list: Vec<String> =
-            //     serde_json::from_str(&k).map_err(|e| anyhow!("serde_json from_str error {}", e))?;
-            // println!("k_first {}", k_list[0]);
-            // let next_node = next_node_val
-            //     .as_u64()
-            //     .ok_or(anyhow!("next node value is not u64"))? as usize;
-            // if let Some(max) = last_max_state {
-            //     if i <= max && next_node <= max {
-            //         continue;
-            //     }
-            // }
-            // // println!("i {}, next_node {}", i, next_node);
-            // graph.add_edge(NodeIndex::from(next_node), NodeIndex::from(i), ());
         }
     }
     Ok(())
@@ -151,33 +137,18 @@ pub fn dfa_to_regex_def_text(dfa_val: &[Value]) -> Result<String> {
                     (key_char as u8).to_string()
                 );
             }
-            // println!(
-            //     "char len {}",
-            //     key_list[0].chars().collect::<Vec<char>>().len()
-            // );
-            // let key_char: char = key_list[0].chars().collect::<Vec<char>>()[0];
-            // let next_node = next_node_val
-            //     .as_u64()
-            //     .ok_or(anyhow!("next node value is not u64"))? as usize;
-            // println!("i {} next {} char {}", i, next_node, key_char as u8);
-            // text += &format!(
-            //     "{} {} {}\n",
-            //     i.to_string(),
-            //     next_node.to_string(),
-            //     (key_char as u8).to_string()
-            // );
         }
     }
     Ok(text)
 }
 
-pub fn to_js_regex(regex: &str) -> String {
-    let mut replaced = regex.replace(r"\\/", r"/");
-    replaced = replaced.replace(r"\\♥", r"\u000b");
-    replaced = replaced.replace(r"\\[", r"[");
-    replaced = replaced.replace(r"\\]", r"]");
-    replaced = replaced.replace(r"\\.", r".");
-    replaced = replaced.replace(r"\\$", r"$");
-    replaced = replaced.replace(r"\\^", r"^");
-    replaced
-}
+// pub fn to_js_regex(regex: &str) -> String {
+//     let mut replaced = regex.replace(r"\\/", r"/");
+//     replaced = replaced.replace(r"\\♥", r"\u000b");
+//     replaced = replaced.replace(r"\\[", r"[");
+//     replaced = replaced.replace(r"\\]", r"]");
+//     replaced = replaced.replace(r"\\.", r".");
+//     replaced = replaced.replace(r"\\$", r"$");
+//     replaced = replaced.replace(r"\\^", r"^");
+//     replaced
+// }

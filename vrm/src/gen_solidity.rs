@@ -6,6 +6,7 @@ use relayer::RegexType as SoldityType;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 use std::{collections::HashMap, fs::File, path::Path};
 
 impl EntryConfig {
@@ -62,19 +63,19 @@ impl EntryConfig {
 
     ";
 
-    pub fn output_solidity_codes(&self, solidity_project_path: &str) -> Result<()> {
-        let src_path = Path::new(solidity_project_path).join("src");
+    pub fn gen_solidity_codes(&self, solidity_project_path: &PathBuf) -> Result<()> {
+        let src_path = solidity_project_path.join("src");
         for id in self.rules.keys() {
             let dir_path = src_path.join(format!("rule{}", id.to_string()));
             if dir_path.is_dir() {
                 fs::remove_dir_all(&dir_path)?;
             }
             fs::create_dir(&dir_path)?;
-            let verifier = self.output_verifier_for_one_rule(*id)?;
+            let verifier = self.gen_verifier_for_one_rule(*id)?;
             let mut verifier_file = File::create(dir_path.join("VerifierWrapper.sol"))?;
             write!(verifier_file, "{}", verifier)?;
             verifier_file.flush()?;
-            let manipulator = self.output_manipulator_for_one_rule(*id)?;
+            let manipulator = self.gen_manipulator_for_one_rule(*id)?;
             let mut manipulator_file = File::create(dir_path.join("Manipulator.sol"))?;
             write!(manipulator_file, "{}", manipulator)?;
             manipulator_file.flush()?;
@@ -82,7 +83,7 @@ impl EntryConfig {
         Ok(())
     }
 
-    fn output_verifier_for_one_rule(&self, id: usize) -> Result<String> {
+    fn gen_verifier_for_one_rule(&self, id: usize) -> Result<String> {
         let mut template = include_str!("VerifierWrapper.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("Rule{}", id.to_string()).as_str());
         template = template.replace(
@@ -144,9 +145,24 @@ impl EntryConfig {
         Ok(template)
     }
 
-    fn output_manipulator_for_one_rule(&self, id: usize) -> Result<String> {
+    fn gen_manipulator_for_one_rule(&self, id: usize) -> Result<String> {
         let mut template: String = include_str!("Manipulator.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("Rule{}", id.to_string()).as_str());
         Ok(template)
+    }
+
+    pub fn replace_verifier_names(&self, solidity_project_path: &PathBuf) -> Result<()> {
+        let src_path = solidity_project_path.join("src");
+        for id in self.rules.keys() {
+            let verifier_path = src_path
+                .join(format!("rule{}", id.to_string()))
+                .join("Verifier.sol");
+            let mut verifier_code = fs::read_to_string(&verifier_path)?;
+            verifier_code = verifier_code.replace("Verifier", &format!("Rule{}Verifier", id));
+            let mut verifier_file = File::create(&verifier_path)?;
+            write!(verifier_file, "{}", verifier_code)?;
+            verifier_file.flush()?;
+        }
+        Ok(())
     }
 }

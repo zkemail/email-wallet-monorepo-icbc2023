@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use std::path::Path;
+use std::env;
+use std::path::{Path, PathBuf};
 
 use crate::entry_config::{BodyPartConfig, EntryConfig};
 use anyhow::Result;
@@ -9,8 +10,8 @@ use std::fs::File;
 use std::io::Write;
 
 impl EntryConfig {
-    pub fn gen_config_files(&self, relayer_project_path: &str) -> Result<()> {
-        let manipulation_defs_path = Path::new(relayer_project_path)
+    pub fn gen_config_files(&self, relayer_project_path: &PathBuf) -> Result<()> {
+        let manipulation_defs_path = relayer_project_path
             .join("configs")
             .join("manipulation_defs.json");
         let mut manipulation_defs_map = HashMap::<usize, ManipulationDef>::new();
@@ -32,13 +33,30 @@ impl EntryConfig {
     fn gen_config_files_for_one_rule(
         &self,
         id: usize,
-        relayer_project_path: &str,
+        relayer_project_path: &PathBuf,
     ) -> Result<ManipulationDef> {
-        let config_path = Path::new(relayer_project_path).join("configs");
+        let config_path = relayer_project_path.join("configs");
         let mut app_params: DefaultEmailVerifyConfigParams =
             serde_json::from_str(include_str!("app_default.config"))?;
         app_params.header_max_byte_size = self.max_header_size;
         app_params.body_max_byte_size = self.max_body_size;
+        let pwd = env::current_dir().unwrap();
+        app_params.bodyhash_regex_filepath = pwd
+            .join(&app_params.bodyhash_regex_filepath)
+            .to_str()
+            .unwrap()
+            .to_string();
+        app_params.bodyhash_substr_filepath = pwd
+            .join(&app_params.bodyhash_substr_filepath)
+            .to_str()
+            .unwrap()
+            .to_string();
+        for path in app_params.header_regex_filepathes.iter_mut() {
+            *path = pwd.join(&path).to_str().unwrap().to_string();
+        }
+        for path in app_params.header_substr_filepathes.iter_mut() {
+            *path = pwd.join(&path).to_str().unwrap().to_string();
+        }
         let regex_path = config_path.join(&format!("regex_body_id{}.txt", id));
         let mut num_public_part = 0;
         let mut solidity_types = vec![];
