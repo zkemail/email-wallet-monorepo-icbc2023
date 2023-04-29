@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import "forge-std/Script.sol";
+import "../src/EmailWallet.sol";
+import "../src/rule<%RULE_INDEX%>/Verifier.sol";
+import "../src/rule<%RULE_INDEX%>/VerifierWrapper.sol";
+import "../src/rule<%RULE_INDEX%>/Manipulator.sol";
+
+contract DeployScript is Script {
+    function setUp() public {}
+
+    function run() public {
+        uint256 privateKey = vm.parseUint(vm.readFile(".privateDeploy"));
+        address walletAddress = vm.envAddress("EMAIL_WALLET_ADDRESS");
+        vm.startBroadcast(privateKey);
+        EmailWallet wallet = new EmailWallet(walletAddress);
+        Rule<%RULE_INDEX%>Verifier verifier = new Rule<%RULE_INDEX%>Verifier();
+        Rule<%RULE_INDEX%>Manipulator manipulator = new Rule<%RULE_INDEX%>Manipulator(
+            address(verifier),
+            payable(walletAddress)
+        );
+        wallet.addManipulation(address(manipulator));
+        vm.stopBroadcast();
+    }
+}

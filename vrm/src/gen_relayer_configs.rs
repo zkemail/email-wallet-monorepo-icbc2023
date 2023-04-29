@@ -10,20 +10,31 @@ use std::fs::File;
 use std::io::Write;
 
 impl EntryConfig {
-    pub fn gen_config_files(&self, relayer_project_path: &PathBuf) -> Result<()> {
+    pub fn gen_config_files(&self, relayer_project_path: &PathBuf, id: usize) -> Result<()> {
         let manipulation_defs_path = relayer_project_path
             .join("configs")
             .join("manipulation_defs.json");
-        let mut manipulation_defs_map = HashMap::<usize, ManipulationDef>::new();
-        for id in self.rules.keys() {
-            let def = self.gen_config_files_for_one_rule(*id, relayer_project_path)?;
-            manipulation_defs_map.insert(*id, def);
-        }
-        let manipulation_defs_json = ManipulationDefsJson {
-            rules: manipulation_defs_map,
+        let mut manipulation_defs_json = if manipulation_defs_path.is_file() {
+            serde_json::from_reader(File::open(&manipulation_defs_path)?)?
+        } else {
+            let manipulation_defs_map = HashMap::<usize, ManipulationDef>::new();
+            ManipulationDefsJson {
+                rules: manipulation_defs_map,
+            }
         };
+        let def = self.gen_config_files_for_one_rule(id, relayer_project_path)?;
+        manipulation_defs_json.rules.insert(id, def);
+
+        // let mut manipulation_defs_map = HashMap::<usize, ManipulationDef>::new();
+        // for id in self.rules.keys() {
+        //     let def = self.gen_config_files_for_one_rule(*id, relayer_project_path)?;
+        //     manipulation_defs_map.insert(*id, def);
+        // }
+        // let manipulation_defs_json = ManipulationDefsJson {
+        //     rules: manipulation_defs_map,
+        // };
         write!(
-            File::create(manipulation_defs_path.to_str().unwrap())?,
+            File::create(&manipulation_defs_path)?,
             "{}",
             serde_json::to_string_pretty::<ManipulationDefsJson>(&manipulation_defs_json)?
         )?;

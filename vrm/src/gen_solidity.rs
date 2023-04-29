@@ -64,23 +64,43 @@ impl EntryConfig {
 
     ";
 
-    pub fn gen_solidity_codes(&self, solidity_project_path: &PathBuf) -> Result<()> {
+    pub fn gen_solidity_codes(&self, solidity_project_path: &PathBuf, id: usize) -> Result<()> {
         let src_path = solidity_project_path.join("src");
-        for id in self.rules.keys() {
-            let dir_path = src_path.join(format!("rule{}", id.to_string()));
-            if dir_path.is_dir() {
-                fs::remove_dir_all(&dir_path)?;
-            }
-            fs::create_dir(&dir_path)?;
-            let verifier = self.gen_verifier_for_one_rule(*id)?;
-            let mut verifier_file = File::create(dir_path.join("VerifierWrapper.sol"))?;
-            write!(verifier_file, "{}", verifier)?;
-            verifier_file.flush()?;
-            let manipulator = self.gen_manipulator_for_one_rule(*id)?;
-            let mut manipulator_file = File::create(dir_path.join("Manipulator.sol"))?;
-            write!(manipulator_file, "{}", manipulator)?;
-            manipulator_file.flush()?;
+        let dir_path = src_path.join(format!("rule{}", id.to_string()));
+        if dir_path.is_dir() {
+            fs::remove_dir_all(&dir_path)?;
         }
+        fs::create_dir(&dir_path)?;
+        let verifier = self.gen_verifier_for_one_rule(id)?;
+        let mut verifier_file = File::create(dir_path.join("VerifierWrapper.sol"))?;
+        write!(verifier_file, "{}", verifier)?;
+        verifier_file.flush()?;
+        let manipulator = self.gen_manipulator_for_one_rule(id)?;
+        let mut manipulator_file = File::create(dir_path.join("Manipulator.sol"))?;
+        write!(manipulator_file, "{}", manipulator)?;
+        manipulator_file.flush()?;
+        let script_path = solidity_project_path.join("script");
+        let mut deployer = self.gen_deploy_script_for_one_rule(id)?;
+        let mut deployer_file =
+            File::create(script_path.join(format!("DeployManipulator{}.s.sol", id)))?;
+        write!(deployer_file, "{}", deployer)?;
+        deployer_file.flush()?;
+
+        // for id in self.rules.keys() {
+        //     let dir_path = src_path.join(format!("rule{}", id.to_string()));
+        //     if dir_path.is_dir() {
+        //         fs::remove_dir_all(&dir_path)?;
+        //     }
+        //     fs::create_dir(&dir_path)?;
+        //     let verifier = self.gen_verifier_for_one_rule(*id)?;
+        //     let mut verifier_file = File::create(dir_path.join("VerifierWrapper.sol"))?;
+        //     write!(verifier_file, "{}", verifier)?;
+        //     verifier_file.flush()?;
+        //     let manipulator = self.gen_manipulator_for_one_rule(*id)?;
+        //     let mut manipulator_file = File::create(dir_path.join("Manipulator.sol"))?;
+        //     write!(manipulator_file, "{}", manipulator)?;
+        //     manipulator_file.flush()?;
+        // }
         Ok(())
     }
 
@@ -149,6 +169,12 @@ impl EntryConfig {
     fn gen_manipulator_for_one_rule(&self, id: usize) -> Result<String> {
         let mut template: String = include_str!("Manipulator.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("Rule{}", id.to_string()).as_str());
+        Ok(template)
+    }
+
+    fn gen_deploy_script_for_one_rule(&self, id: usize) -> Result<String> {
+        let mut template: String = include_str!("DeployManipulator.s.sol.template").to_string();
+        template = template.replace("<%RULE_INDEX%>", format!("{}", id.to_string()).as_str());
         Ok(template)
     }
 

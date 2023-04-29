@@ -20,19 +20,28 @@ use std::path::Path;
 use std::path::PathBuf;
 
 impl EntryConfig {
-    pub fn gen_regex_files(&self, relayer_project_path: &PathBuf) -> Result<()> {
+    pub fn gen_regex_files(&self, relayer_project_path: &PathBuf, id: usize) -> Result<()> {
         let config_path = relayer_project_path.join("configs");
-        for id in self.rules.keys() {
-            let regex_file_path = config_path.join(format!("regex_body_id{}.txt", id.to_string()));
-            let id_to_substr_path = |substr_id: usize| {
-                config_path.join(format!(
-                    "substr_body_id{}_{}.txt",
-                    id.to_string(),
-                    substr_id.to_string()
-                ))
-            };
-            self.gen_regex_files_for_one_rule(*id, &regex_file_path, id_to_substr_path)?;
-        }
+        // for id in self.rules.keys() {
+        //     let regex_file_path = config_path.join(format!("regex_body_id{}.txt", id.to_string()));
+        //     let id_to_substr_path = |substr_id: usize| {
+        //         config_path.join(format!(
+        //             "substr_body_id{}_{}.txt",
+        //             id.to_string(),
+        //             substr_id.to_string()
+        //         ))
+        //     };
+        //     self.gen_regex_files_for_one_rule(*id, &regex_file_path, id_to_substr_path)?;
+        // }
+        let regex_file_path = config_path.join(format!("regex_body_id{}.txt", id.to_string()));
+        let id_to_substr_path = |substr_id: usize| {
+            config_path.join(format!(
+                "substr_body_id{}_{}.txt",
+                id.to_string(),
+                substr_id.to_string()
+            ))
+        };
+        self.gen_regex_files_for_one_rule(id, &regex_file_path, id_to_substr_path)?;
         Ok(())
     }
 

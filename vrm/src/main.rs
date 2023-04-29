@@ -23,7 +23,9 @@ struct Cli {
 #[derive(Debug, Subcommand, Clone)]
 enum Commands {
     /// The first setup.
-    Setup1 {
+    AddRule {
+        #[arg(long)]
+        id: usize,
         #[arg(short, long, default_value = "entry_config.json")]
         entry_config_path: String,
         #[arg(short, long, default_value = "email-wallet-contracts")]
@@ -37,11 +39,13 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Setup1 {
+        Commands::AddRule {
+            id,
             entry_config_path,
             solidity_project_path,
             relayer_project_path,
-        } => setup1(
+        } => add_rule(
+            id,
             &entry_config_path,
             &solidity_project_path,
             &relayer_project_path,
@@ -51,7 +55,8 @@ async fn main() {
     }
 }
 
-async fn setup1(
+async fn add_rule(
+    id: usize,
     entry_config_path: &str,
     solidity_project_path: &str,
     relayer_project_path: &str,
@@ -72,9 +77,9 @@ async fn setup1(
 
     let entry_config =
         serde_json::from_reader::<File, EntryConfig>(File::open(entry_config_path)?)?;
-    entry_config.gen_solidity_codes(&solidity_project_path)?;
-    entry_config.gen_regex_files(&relayer_project_path)?;
-    entry_config.gen_config_files(&relayer_project_path)?;
+    entry_config.gen_solidity_codes(&solidity_project_path, id)?;
+    entry_config.gen_regex_files(&relayer_project_path, id)?;
+    entry_config.gen_config_files(&relayer_project_path, id)?;
     Command::new("bash").arg("./vrm/src/setup.sh").output()?;
     let app_param_path = pwd
         .join("relayer/configs/app_params.bin")
@@ -91,82 +96,153 @@ async fn setup1(
         .to_str()
         .unwrap()
         .to_string();
+    let app_circuit_config_path = pwd
+        .join(&format!("relayer/configs/app_circuit_id{}.config", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let email_path = pwd
+        .join(&format!("emails/email_id{}.eml", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let app_pk_path = pwd
+        .join(&format!("relayer/configs/app_{}.pk", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let agg_pk_path = pwd
+        .join(&format!("relayer/configs/agg_{}.pk", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let app_vk_path = pwd
+        .join(&format!("relayer/configs/app_{}.vk", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let agg_vk_path = pwd
+        .join(&format!("relayer/configs/agg_{}.vk", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let bytecode_path = pwd
+        .join(&format!("relayer/configs/agg_verifier_id{}.bin", id))
+        .to_str()
+        .unwrap()
+        .to_string();
+    let solidity_path = pwd
+        .join(&format!(
+            "email-wallet-contracts/src/rule{}/Verifier.sol",
+            id
+        ))
+        .to_str()
+        .unwrap()
+        .to_string();
     if !Path::new(&app_param_path).is_file() {
         downsize_param(&agg_param_path, &app_param_path, 20)?;
     }
-    for idx in entry_config.rules.keys() {
-        let app_circuit_config_path = pwd
-            .join(&format!("relayer/configs/app_circuit_id{}.config", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let email_path = pwd
-            .join(&format!("emails/email_id{}.eml", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let app_pk_path = pwd
-            .join(&format!("relayer/configs/app_{}.pk", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let agg_pk_path = pwd
-            .join(&format!("relayer/configs/agg_{}.pk", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let app_vk_path = pwd
-            .join(&format!("relayer/configs/app_{}.vk", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let agg_vk_path = pwd
-            .join(&format!("relayer/configs/agg_{}.vk", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let bytecode_path = pwd
-            .join(&format!("relayer/configs/agg_verifier_id{}.bin", idx))
-            .to_str()
-            .unwrap()
-            .to_string();
-        let solidity_path = pwd
-            .join(&format!(
-                "email-wallet-contracts/src/rule{}/Verifier.sol",
-                idx
-            ))
-            .to_str()
-            .unwrap()
-            .to_string();
-        gen_app_key(
-            &app_param_path,
-            &app_circuit_config_path,
-            &email_path,
-            &app_pk_path,
-            &app_vk_path,
-        )
-        .await?;
-        gen_agg_key(
-            &app_param_path,
-            &agg_param_path,
-            &app_circuit_config_path,
-            &agg_circuit_config_path,
-            &email_path,
-            &app_pk_path,
-            &agg_pk_path,
-            &agg_vk_path,
-        )
-        .await?;
-        gen_agg_evm_verifier(
-            &agg_param_path,
-            &app_circuit_config_path,
-            &agg_circuit_config_path,
-            &agg_vk_path,
-            &bytecode_path,
-            &solidity_path,
-        )
-        .await?;
-    }
+    gen_app_key(
+        &app_param_path,
+        &app_circuit_config_path,
+        &email_path,
+        &app_pk_path,
+        &app_vk_path,
+    )
+    .await?;
+    gen_agg_key(
+        &app_param_path,
+        &agg_param_path,
+        &app_circuit_config_path,
+        &agg_circuit_config_path,
+        &email_path,
+        &app_pk_path,
+        &agg_pk_path,
+        &agg_vk_path,
+    )
+    .await?;
+    gen_agg_evm_verifier(
+        &agg_param_path,
+        &app_circuit_config_path,
+        &agg_circuit_config_path,
+        &agg_vk_path,
+        &bytecode_path,
+        &solidity_path,
+    )
+    .await?;
+    // for idx in entry_config.rules.keys() {
+    //     let app_circuit_config_path = pwd
+    //         .join(&format!("relayer/configs/app_circuit_id{}.config", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let email_path = pwd
+    //         .join(&format!("emails/email_id{}.eml", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let app_pk_path = pwd
+    //         .join(&format!("relayer/configs/app_{}.pk", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let agg_pk_path = pwd
+    //         .join(&format!("relayer/configs/agg_{}.pk", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let app_vk_path = pwd
+    //         .join(&format!("relayer/configs/app_{}.vk", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let agg_vk_path = pwd
+    //         .join(&format!("relayer/configs/agg_{}.vk", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let bytecode_path = pwd
+    //         .join(&format!("relayer/configs/agg_verifier_id{}.bin", idx))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     let solidity_path = pwd
+    //         .join(&format!(
+    //             "email-wallet-contracts/src/rule{}/Verifier.sol",
+    //             idx
+    //         ))
+    //         .to_str()
+    //         .unwrap()
+    //         .to_string();
+    //     gen_app_key(
+    //         &app_param_path,
+    //         &app_circuit_config_path,
+    //         &email_path,
+    //         &app_pk_path,
+    //         &app_vk_path,
+    //     )
+    //     .await?;
+    //     gen_agg_key(
+    //         &app_param_path,
+    //         &agg_param_path,
+    //         &app_circuit_config_path,
+    //         &agg_circuit_config_path,
+    //         &email_path,
+    //         &app_pk_path,
+    //         &agg_pk_path,
+    //         &agg_vk_path,
+    //     )
+    //     .await?;
+    //     gen_agg_evm_verifier(
+    //         &agg_param_path,
+    //         &app_circuit_config_path,
+    //         &agg_circuit_config_path,
+    //         &agg_vk_path,
+    //         &bytecode_path,
+    //         &solidity_path,
+    //     )
+    //     .await?;
+    // }
     entry_config.replace_verifier_names(&solidity_project_path)?;
     Command::new("forge")
         .arg("build")
