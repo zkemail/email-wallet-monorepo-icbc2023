@@ -14,7 +14,7 @@ contract DeployScript is Script {
         uint256 privateKey = vm.parseUint(vm.readFile(".privateDeploy"));
         address walletAddress = vm.envAddress("EMAIL_WALLET_ADDRESS");
         vm.startBroadcast(privateKey);
-        EmailWallet wallet = new EmailWallet(walletAddress);
+        EmailWallet wallet = EmailWallet(walletAddress);
         Rule<%RULE_INDEX%>Verifier verifier = new Rule<%RULE_INDEX%>Verifier();
         Rule<%RULE_INDEX%>Manipulator manipulator = new Rule<%RULE_INDEX%>Manipulator(
             address(verifier),
