@@ -243,7 +243,7 @@ async fn add_rule(
     //     )
     //     .await?;
     // }
-    entry_config.replace_verifier_names(&solidity_project_path)?;
+    entry_config.replace_verifier_names(&solidity_project_path, id)?;
     Command::new("forge")
         .arg("build")
         .current_dir("email-wallet-contracts")

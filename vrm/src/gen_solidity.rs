@@ -178,18 +178,26 @@ impl EntryConfig {
         Ok(template)
     }
 
-    pub fn replace_verifier_names(&self, solidity_project_path: &PathBuf) -> Result<()> {
+    pub fn replace_verifier_names(&self, solidity_project_path: &PathBuf, id: usize) -> Result<()> {
         let src_path = solidity_project_path.join("src");
-        for id in self.rules.keys() {
-            let verifier_path = src_path
-                .join(format!("rule{}", id.to_string()))
-                .join("Verifier.sol");
-            let mut verifier_code = fs::read_to_string(&verifier_path)?;
-            verifier_code = verifier_code.replace("Verifier", &format!("Rule{}Verifier", id));
-            let mut verifier_file = File::create(&verifier_path)?;
-            write!(verifier_file, "{}", verifier_code)?;
-            verifier_file.flush()?;
-        }
+        let verifier_path = src_path
+            .join(format!("rule{}", id.to_string()))
+            .join("Verifier.sol");
+        let mut verifier_code = fs::read_to_string(&verifier_path)?;
+        verifier_code = verifier_code.replace("Verifier", &format!("Rule{}Verifier", id));
+        let mut verifier_file = File::create(&verifier_path)?;
+        write!(verifier_file, "{}", verifier_code)?;
+        verifier_file.flush()?;
+        // for id in self.rules.keys() {
+        //     let verifier_path = src_path
+        //         .join(format!("rule{}", id.to_string()))
+        //         .join("Verifier.sol");
+        //     let mut verifier_code = fs::read_to_string(&verifier_path)?;
+        //     verifier_code = verifier_code.replace("Verifier", &format!("Rule{}Verifier", id));
+        //     let mut verifier_file = File::create(&verifier_path)?;
+        //     write!(verifier_file, "{}", verifier_code)?;
+        //     verifier_file.flush()?;
+        // }
         Ok(())
     }
 
