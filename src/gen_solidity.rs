@@ -1,8 +1,8 @@
-use crate::entry_config::{BodyPartConfig, EntryConfig};
+use crate::entry_config::EntryConfig;
 use anyhow::{anyhow, Result};
 use fancy_regex::Regex;
+use halo2_zk_email::vrm::*;
 use itertools::Itertools;
-use relayer::RegexType as SoldityType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs;
@@ -67,9 +67,9 @@ impl EntryConfig {
     pub fn gen_solidity_codes(&self, solidity_project_path: &PathBuf, id: usize) -> Result<()> {
         let src_path = solidity_project_path.join("src");
         let dir_path = src_path.join(format!("rule{}", id.to_string()));
-        if dir_path.is_dir() {
-            fs::remove_dir_all(&dir_path)?;
-        }
+        // if dir_path.is_dir() {
+        //     fs::remove_dir_all(&dir_path)?;
+        // }
         fs::create_dir(&dir_path)?;
         let verifier = self.gen_verifier_for_one_rule(id)?;
         let mut verifier_file = File::create(dir_path.join("VerifierWrapper.sol"))?;
@@ -105,7 +105,7 @@ impl EntryConfig {
     }
 
     fn gen_verifier_for_one_rule(&self, id: usize) -> Result<String> {
-        let mut template = include_str!("VerifierWrapper.sol.template").to_string();
+        let mut template = include_str!("templates/VerifierWrapper.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("Rule{}", id.to_string()).as_str());
         template = template.replace(
             "<%HEADER_MAX_BYTE_SIZE%>",
@@ -113,9 +113,9 @@ impl EntryConfig {
         );
         template = template.replace(
             "<%BODY_MAX_BYTE_SIZE%>",
-            self.max_body_size.to_string().as_str(),
+            self.rules[&id].max_byte_size.to_string().as_str(),
         );
-        let part_configs = &self.rules[&id];
+        let part_configs = &self.rules[&id].parts;
         let mut body_param_defs = String::new();
         let mut body_encode_part = String::new();
         let mut substr_id = 0;
@@ -167,13 +167,14 @@ impl EntryConfig {
     }
 
     fn gen_manipulator_for_one_rule(&self, id: usize) -> Result<String> {
-        let mut template: String = include_str!("Manipulator.sol.template").to_string();
+        let mut template: String = include_str!("templates/Manipulator.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("Rule{}", id.to_string()).as_str());
         Ok(template)
     }
 
     fn gen_deploy_script_for_one_rule(&self, id: usize) -> Result<String> {
-        let mut template: String = include_str!("DeployManipulator.s.sol.template").to_string();
+        let mut template: String =
+            include_str!("templates/DeployManipulator.s.sol.template").to_string();
         template = template.replace("<%RULE_INDEX%>", format!("{}", id.to_string()).as_str());
         Ok(template)
     }
@@ -201,23 +202,23 @@ impl EntryConfig {
         Ok(())
     }
 
-    pub fn copy_abi_files(
-        &self,
-        solidity_project_path: &PathBuf,
-        relayer_project_path: &PathBuf,
-    ) -> Result<()> {
-        let out_path = solidity_project_path.join("out");
-        let config_path = relayer_project_path.join("configs");
-        for name in ["EmailWallet", "IERC20", "IManipulator"] {
-            let json_path = out_path.join(&format!("{}.sol/{}.json", name, name));
-            let json_value: Value = serde_json::from_reader(File::open(&json_path)?)?;
-            let abi_value = json_value.get("abi").unwrap();
-            let abi_str = serde_json::to_string(&abi_value)?;
-            let abi_json_path = config_path.join(&format!("{}.json", name));
-            let mut file = File::create(&abi_json_path)?;
-            write!(file, "{}", abi_str)?;
-            file.flush()?;
-        }
-        Ok(())
-    }
+    // pub fn copy_abi_files(
+    //     &self,
+    //     solidity_project_path: &PathBuf,
+    //     relayer_project_path: &PathBuf,
+    // ) -> Result<()> {
+    //     let out_path = solidity_project_path.join("out");
+    //     let config_path = relayer_project_path.join("configs");
+    //     for name in ["EmailWallet", "IERC20", "IManipulator"] {
+    //         let json_path = out_path.join(&format!("{}.sol/{}.json", name, name));
+    //         let json_value: Value = serde_json::from_reader(File::open(&json_path)?)?;
+    //         let abi_value = json_value.get("abi").unwrap();
+    //         let abi_str = serde_json::to_string(&abi_value)?;
+    //         let abi_json_path = config_path.join(&format!("{}.json", name));
+    //         let mut file = File::create(&abi_json_path)?;
+    //         write!(file, "{}", abi_str)?;
+    //         file.flush()?;
+    //     }
+    //     Ok(())
+    // }
 }
