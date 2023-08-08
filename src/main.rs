@@ -25,7 +25,7 @@ struct Cli {
 #[derive(Debug, Subcommand, Clone)]
 enum Commands {
     New {
-        #[arg(short, long, default_value = "./")]
+        #[arg(long, default_value = "./")]
         root_path: String,
         #[arg(short, long, default_value = "email-wallet-contracts")]
         solidity_project_path: String,
@@ -35,21 +35,21 @@ enum Commands {
     AddRule {
         #[arg(long)]
         id: usize,
-        #[arg(short, long, default_value = "./")]
+        #[arg(long, default_value = "./")]
         root_path: String,
         #[arg(short, long, default_value = "email-wallet-contracts")]
         solidity_project_path: String,
         #[arg(short, long, default_value = "relayer")]
         relayer_project_path: String,
     },
-    VerifyProof {
-        #[arg(long)]
-        id: usize,
-        #[arg(long)]
-        email_index: usize,
-        #[arg(short, long, default_value = "relayer")]
-        relayer_project_path: String,
-    },
+    // VerifyProof {
+    //     #[arg(long)]
+    //     id: usize,
+    //     #[arg(long)]
+    //     email_index: usize,
+    //     #[arg(short, long, default_value = "relayer")]
+    //     relayer_project_path: String,
+    // },
 }
 
 #[tokio::main]
@@ -76,56 +76,56 @@ async fn main() {
         )
         .await
         .unwrap(),
-        Commands::VerifyProof {
-            id,
-            email_index,
-            relayer_project_path,
-        } => {
-            let pwd = env::current_dir().unwrap();
-            let mut relayer_project_path = PathBuf::new().join(relayer_project_path);
-            if relayer_project_path.is_relative() {
-                relayer_project_path = pwd.join(&relayer_project_path);
-            }
-            let agg_circuit_config_path = pwd
-                .join("relayer/configs/agg_circuit.config")
-                .to_str()
-                .unwrap()
-                .to_string();
-            let app_circuit_config_path = pwd
-                .join(&format!("relayer/configs/app_circuit_id{}.config", id))
-                .to_str()
-                .unwrap()
-                .to_string();
-            let bytecode_path = pwd
-                .join(&format!("relayer/configs/agg_verifier_id{}.bin", id))
-                .to_str()
-                .unwrap()
-                .to_string();
-            let proof_path = pwd
-                .join(&format!("relayer/emails/proof_{}.hex", email_index))
-                .to_str()
-                .unwrap()
-                .to_string();
-            let acc_path = pwd
-                .join(&format!("relayer/emails/acc_{}.hex", email_index))
-                .to_str()
-                .unwrap()
-                .to_string();
-            let public_input_path = pwd
-                .join(&format!("relayer/emails/public_input_{}.hex", email_index))
-                .to_str()
-                .unwrap()
-                .to_string();
-            evm_verify_agg(
-                &app_circuit_config_path,
-                &agg_circuit_config_path,
-                &bytecode_path,
-                &proof_path,
-                &acc_path,
-                &public_input_path,
-            )
-            .unwrap();
-        }
+        // Commands::VerifyProof {
+        //     id,
+        //     email_index,
+        //     relayer_project_path,
+        // } => {
+        //     let pwd = env::current_dir().unwrap();
+        //     let mut relayer_project_path = PathBuf::new().join(relayer_project_path);
+        //     if relayer_project_path.is_relative() {
+        //         relayer_project_path = pwd.join(&relayer_project_path);
+        //     }
+        //     let agg_circuit_config_path = pwd
+        //         .join("relayer/configs/agg_circuit.config")
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     let app_circuit_config_path = pwd
+        //         .join(&format!("relayer/configs/app_circuit_id{}.config", id))
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     let bytecode_path = pwd
+        //         .join(&format!("relayer/configs/agg_verifier_id{}.bin", id))
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     let proof_path = pwd
+        //         .join(&format!("relayer/emails/proof_{}.hex", email_index))
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     let acc_path = pwd
+        //         .join(&format!("relayer/emails/acc_{}.hex", email_index))
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     let public_input_path = pwd
+        //         .join(&format!("relayer/emails/public_input_{}.hex", email_index))
+        //         .to_str()
+        //         .unwrap()
+        //         .to_string();
+        //     evm_verify_agg(
+        //         &app_circuit_config_path,
+        //         &agg_circuit_config_path,
+        //         &bytecode_path,
+        //         &proof_path,
+        //         &acc_path,
+        //         &public_input_path,
+        //     )
+        //     .unwrap();
+        // }
     }
 }
 

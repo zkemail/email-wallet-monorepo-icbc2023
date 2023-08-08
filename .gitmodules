@@ -1,0 +1,8 @@
+[submodule "relayer"]
+	path = relayer
+	url = https://github.com/zkemail/relayer.git
+	branch = feat/imap
+[submodule "email-wallet-contracts"]
+	path = email-wallet-contracts
+	url = https://github.com/zkemail/email-wallet-contracts.git
+	branch = feat/icbc2023_demo
